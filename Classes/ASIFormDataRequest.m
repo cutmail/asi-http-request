@@ -67,7 +67,7 @@
 
 - (void)addPostValue:(id <NSObject>)value forKey:(NSString *)key
 {
-	// Modified from the original ASIHTTPRequest:
+	// Modified from the original ASIFormDataRequest:
 	// - If the given key is nil, do nothing.
 	// - If the string description of the given value is nil, treat it as a blank string.
 	if (!key) {
