@@ -751,6 +751,10 @@ static NSOperationQueue *sharedQueue = nil;
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Starting synchronous request %@",self);
 #endif
+#if DEBUG_VERBOSE
+	NSLog(@"URL      = %@", self.url);
+	NSLog(@"Username = %@", self.username);
+#endif
 	[self setRunLoopMode:ASIHTTPRequestRunLoopMode];
 	[self setInProgress:YES];
 
@@ -774,6 +778,10 @@ static NSOperationQueue *sharedQueue = nil;
 {
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Starting asynchronous request %@",self);
+#endif
+#if DEBUG_VERBOSE
+	NSLog(@"URL      = %@", self.url);
+	NSLog(@"Username = %@", self.username);
 #endif
 	[sharedQueue addOperation:self];
 }
@@ -1942,6 +1950,10 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
+#if DEBUG_VERBOSE
+    NSLog(@"Response Status = %@", self.responseStatusMessage);
+	NSLog(@"Response Body   = %@", [self responseString]);
+#endif
 	[self performSelectorOnMainThread:@selector(reportFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
 }
 

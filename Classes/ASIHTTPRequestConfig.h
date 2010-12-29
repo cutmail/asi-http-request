@@ -30,3 +30,8 @@
 #ifndef DEBUG_PERSISTENT_CONNECTIONS
 	#define DEBUG_PERSISTENT_CONNECTIONS 0
 #endif
+
+// When set to 1, ASIHTTPRequests will print verbose information such as request URL, request parameter, or response body to the console
+#ifndef DEBUG_VERBOSE
+	#define DEBUG_VERBOSE 0
+#endif
