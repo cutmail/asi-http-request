@@ -67,10 +67,21 @@
 
 - (void)addPostValue:(id <NSObject>)value forKey:(NSString *)key
 {
+	// Modified from the original ASIHTTPRequest:
+	// - If the given key is nil, do nothing.
+	// - If the string description of the given value is nil, treat it as a blank string.
+	if (!key) {
+		return;
+	}
+	NSString *valueString = [value description];
+	if (!valueString) {
+		valueString = @"";
+	}
+	
 	if (![self postData]) {
 		[self setPostData:[NSMutableArray array]];
 	}
-	[[self postData] addObject:[NSDictionary dictionaryWithObjectsAndKeys:[value description],@"value",key,@"key",nil]];
+	[[self postData] addObject:[NSDictionary dictionaryWithObjectsAndKeys:valueString,@"value",key,@"key",nil]];
 }
 
 - (void)setPostValue:(id <NSObject>)value forKey:(NSString *)key
