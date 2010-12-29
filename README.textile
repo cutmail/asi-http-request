@@ -1,3 +1,9 @@
+The famous ASIHTTPRequest with several features implemented by akisute.
+* DEBUG_VERBOSE option to dump all response body string to your console
+* ASIAPIRequest class to implement custom API request class much easier
+
+Here's an original README:
+
 ASIHTTPRequest is an easy to use wrapper around the CFNetwork API that makes some of the more tedious aspects of communicating with web servers easier. It is written in Objective-C and works in both Mac OS X and iPhone applications.
 
 It is suitable performing basic HTTP requests and interacting with REST-based services (GET / POST / PUT / DELETE). The included ASIFormDataRequest subclass makes it easy to submit POST data and files using multipart/form-data.
