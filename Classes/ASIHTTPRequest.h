@@ -290,7 +290,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Called on the delegate (if implemented) when the request starts. Default is requestStarted:
 	SEL didStartSelector;
 	
-	// Called on the delegate (if implemented) when the request receives response headers. Default is requestDidReceiveResponseHeaders:
+	// Called on the delegate (if implemented) when the request receives response headers. Default is request:didReceiveResponseHeaders:
 	SEL didReceiveResponseHeadersSelector;
 
 	// Called on the delegate (if implemented) when the request receives a Location header and shouldRedirect is YES
@@ -481,7 +481,22 @@ typedef void (^ASIDataBlock)(NSData *data);
 	//
 	// Setting this to NO may be especially useful for users using ASIHTTPRequest in conjunction with a streaming parser, as it will allow partial gzipped responses to be inflated and passed on to the parser while the request is still running
 	BOOL shouldWaitToInflateCompressedResponses;
-	
+
+	// Will be YES if this is a request created behind the scenes to download a PAC file - these requests do not attempt to configure their own proxies
+	BOOL isPACFileRequest;
+
+	// Used for downloading PAC files from http / https webservers
+	ASIHTTPRequest *PACFileRequest;
+
+	// Used for asynchronously reading PAC files from file:// URLs
+	NSInputStream *PACFileReadStream;
+
+	// Used for storing PAC data from file URLs as it is downloaded
+	NSMutableData *PACFileData;
+
+	// Set to YES in startSynchronous. Currently used by proxy detection to download PAC files synchronously when appropriate
+	BOOL isSynchronous;
+
 	#if NS_BLOCKS_AVAILABLE
 	//block to execute when request starts
 	ASIBasicBlock startedBlock;
@@ -782,11 +797,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 // Will be used as a user agent if requests do not specify a custom user agent
 // Is only used when you have specified a Bundle Display Name (CFDisplayBundleName) or Bundle Name (CFBundleName) in your plist
 + (NSString *)defaultUserAgentString;
-
-#pragma mark proxy autoconfiguration
-
-// Returns an array of proxies to use for a particular url, given the url of a PAC script
-+ (NSArray *)proxiesForURL:(NSURL *)theURL fromPAC:(NSURL *)pacScriptURL;
 
 #pragma mark mime-type detection
 

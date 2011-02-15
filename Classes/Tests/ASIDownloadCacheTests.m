@@ -10,6 +10,13 @@
 #import "ASIDownloadCache.h"
 #import "ASIHTTPRequest.h"
 
+// Stop clang complaining about undeclared selectors
+@interface ASIDownloadCacheTests ()
+- (void)runCacheOnlyCallsRequestFinishedOnceTest;
+- (void)finishCached:(ASIHTTPRequest *)request;
+@end
+
+
 @implementation ASIDownloadCacheTests
 
 - (void)testDownloadCache
@@ -145,6 +152,21 @@
 
 	success = [[[request responseHeaders] valueForKey:@"test"] isEqualToString:@"test"];
 	GHAssertTrue(success,@"Failed to read cached response headers");
+
+	// Remove the stuff from the cache, and try again
+	[request setURL:[NSURL URLWithString:@"http://"]];
+	[[ASIDownloadCache sharedCache] removeCachedDataForRequest:request];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://"]];
+	[request setCachePolicy:ASIFallbackToCacheIfLoadFailsCachePolicy];
+	[request startSynchronous];
+
+	success = ![request didUseCachedResponse];
+	GHAssertTrue(success,@"Request says it used a cached response, but there wasn't one to use");
+
+	success = !![request error];
+	GHAssertTrue(success,@"Request had no error set");
+
 
 	// Test ASIDontLoadCachePolicy
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
