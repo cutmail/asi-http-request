@@ -29,7 +29,7 @@ __PRIVATE_ASI_EXTERN NSString const *APIDeleteRequestFinishedNotification;
 __PRIVATE_ASI_EXTERN NSString const *APIDeleteRequestFailedNotification;
 
 
-@interface APIBase : ASIFormDataRequest {
+@interface ASIAPIRequest : ASIFormDataRequest {
 @private
 	NSString *getRequestFinishedNotificationName;
 	NSString *getRequestFailedNotificationName;

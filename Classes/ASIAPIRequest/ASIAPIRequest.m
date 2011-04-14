@@ -21,7 +21,7 @@ NSString const *APIDeleteRequestFailedNotification = @"APIDeleteRequestFailedNot
 
 
 // Private interface
-@interface APIBase()
+@interface ASIAPIRequest()
 - (void)__buildURLEncodedQueryStringParameters;
 - (void)__postNotificationWithName:(NSString *)notificationName;
 @end
@@ -30,7 +30,7 @@ NSString const *APIDeleteRequestFailedNotification = @"APIDeleteRequestFailedNot
 #pragma mark -
 
 
-@implementation APIBase
+@implementation ASIAPIRequest
 
 
 #pragma mark Init/dealloc
