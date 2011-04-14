@@ -26,6 +26,8 @@
 // Automatically set on build
 NSString *ASIHTTPRequestVersion = @"v1.8-56 2011-02-06";
 
+static NSString *defaultUserAgent = nil;
+
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static NSString *ASIHTTPRequestRunLoopMode = @"ASIHTTPRequestRunLoopMode";
@@ -63,7 +65,6 @@ static NSError *ASITooMuchRedirectionError;
 
 static NSMutableArray *bandwidthUsageTracker = nil;
 static unsigned long averageBandwidthUsedPerSecond = 0;
-
 
 // These are used for queuing persistent connections on the same connection
 
@@ -122,18 +123,13 @@ static NSDate *throttleWakeUpTime = nil;
 
 static id <ASICacheDelegate> defaultCache = nil;
 
-
 // Used for tracking when requests are using the network
 static unsigned int runningRequestCount = 0;
-
 
 // You can use [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO] if you want to manage it yourself
 // Alternatively, override showNetworkActivityIndicator / hideNetworkActivityIndicator
 // By default this does nothing on Mac OS X, but again override the above methods for a different behaviour
 static BOOL shouldUpdateNetworkActivityIndicator = YES;
-
-
-//**Queue stuff**/
 
 // The thread all requests will run on
 // Hangs around forever, but will be blocked unless there are requests underway
@@ -393,6 +389,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[connectionInfo release];
 	[requestID release];
 	[dataDecompressor release];
+	[userAgent release];
 
 	#if NS_BLOCKS_AVAILABLE
 	[self releaseBlocksOnMainThread];
@@ -1046,7 +1043,10 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Build and set the user agent string if the request does not already have a custom user agent specified
 	if (![[self requestHeaders] objectForKey:@"User-Agent"]) {
-		NSString *userAgentString = [ASIHTTPRequest defaultUserAgentString];
+		NSString *userAgentString = [self userAgent];
+		if (!userAgentString) {
+			userAgentString = [ASIHTTPRequest defaultUserAgentString];
+		}
 		if (userAgentString) {
 			[self addRequestHeader:@"User-Agent" value:userAgentString];
 		}
@@ -1865,14 +1865,14 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didStartSelector]) {
 		[delegate performSelector:didStartSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:@selector(requestStarted:)]) {
-		[queue performSelector:@selector(requestStarted:) withObject:self];
-	}
 	#if NS_BLOCKS_AVAILABLE
 	if(startedBlock){
 		startedBlock();
 	}
 	#endif
+	if (queue && [queue respondsToSelector:@selector(requestStarted:)]) {
+		[queue performSelector:@selector(requestStarted:) withObject:self];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -1885,6 +1885,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if([[self delegate] respondsToSelector:@selector(requestRedirected:)]){
 		[[self delegate] performSelector:@selector(requestRedirected:) withObject:self];
 	}
+
 	#if NS_BLOCKS_AVAILABLE
 	if(requestRedirectedBlock){
 		requestRedirectedBlock();
@@ -1903,15 +1904,16 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
 		[delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
 	}
-	if (queue && [queue respondsToSelector:@selector(request:didReceiveResponseHeaders:)]) {
-		[queue performSelector:@selector(request:didReceiveResponseHeaders:) withObject:self withObject:newResponseHeaders];
-	}
-    
+
 	#if NS_BLOCKS_AVAILABLE
 	if(headersReceivedBlock){
 		headersReceivedBlock(newResponseHeaders);
     }
 	#endif
+
+	if (queue && [queue respondsToSelector:@selector(request:didReceiveResponseHeaders:)]) {
+		[queue performSelector:@selector(request:didReceiveResponseHeaders:) withObject:self withObject:newResponseHeaders];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -1955,14 +1957,16 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didFinishSelector]) {
 		[delegate performSelector:didFinishSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:@selector(requestFinished:)]) {
-		[queue performSelector:@selector(requestFinished:) withObject:self];
-	}
-#if NS_BLOCKS_AVAILABLE
+
+	#if NS_BLOCKS_AVAILABLE
 	if(completionBlock){
 		completionBlock();
 	}
-#endif
+	#endif
+
+	if (queue && [queue respondsToSelector:@selector(requestFinished:)]) {
+		[queue performSelector:@selector(requestFinished:) withObject:self];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -1971,14 +1975,16 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didFailSelector]) {
 		[delegate performSelector:didFailSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:@selector(requestFailed:)]) {
-		[queue performSelector:@selector(requestFailed:) withObject:self];
-	}
+
 	#if NS_BLOCKS_AVAILABLE
     if(failureBlock){
         failureBlock();
     }
 	#endif
+
+	if (queue && [queue respondsToSelector:@selector(requestFailed:)]) {
+		[queue performSelector:@selector(requestFailed:) withObject:self];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -2108,7 +2114,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if (![self authenticationNeeded]) {
 
 		// Did we get here without an authentication challenge? (which can happen when shouldPresentCredentialsBeforeChallenge is YES and basic auth was successful)
-		if (!requestAuthentication && [self username] && [self password] && [self useSessionPersistence]) {
+		if (!requestAuthentication && [[self authenticationScheme] isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeBasic] && [self username] && [self password] && [self useSessionPersistence]) {
 			
 			NSMutableDictionary *newCredentials = [NSMutableDictionary dictionaryWithCapacity:2];
 			[newCredentials setObject:[self username] forKey:(NSString *)kCFHTTPAuthenticationUsername];
@@ -3456,7 +3462,7 @@ static NSOperationQueue *sharedQueue = nil;
 		// Also, iPhone seems to handle errors differently from Mac OS X - a self-signed certificate returns a different error code on each platform, so we'll just provide a general error
 		if ([[underlyingError domain] isEqualToString:NSOSStatusErrorDomain]) {
 			if ([underlyingError code] <= -9800 && [underlyingError code] >= -9818) {
-				reason = [NSString stringWithFormat:@"%@: SSL problem (possibly a bad/expired/self-signed certificate)",reason];
+				reason = [NSString stringWithFormat:@"%@: SSL problem (Possible causes may include a bad/expired/self-signed certificate, clock set to wrong date)",reason];
 			}
 		}
 		
@@ -4122,6 +4128,13 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (NSString *)defaultUserAgentString
 {
+	// If we already have a default user agent set, return that
+	if (defaultUserAgent) {
+		return defaultUserAgent;
+	}
+	
+	// Otherwise, create a new user agent string (we'll save it for later reuse)
+	
 	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 
 	// Attempt to find a name for this application
@@ -4177,8 +4190,16 @@ static NSOperationQueue *sharedQueue = nil;
 	
 #endif
 	// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
-	return [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale];
+	[self setDefaultUserAgentString:[NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale]];	
+	return defaultUserAgent;
 }
+
++ (void)setDefaultUserAgentString:(NSString *)agent
+{
+	[defaultUserAgent release];
+	defaultUserAgent = [agent copy];
+}
+
 
 #pragma mark mime-type detection
 
@@ -4340,7 +4361,6 @@ static NSOperationQueue *sharedQueue = nil;
 	
 + (unsigned long)maxUploadReadLength
 {
-	
 	[bandwidthThrottlingLock lock];
 	
 	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
@@ -4545,15 +4565,13 @@ static NSOperationQueue *sharedQueue = nil;
     NSMutableData* data = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
     uint8_t* output = (uint8_t*)data.mutableBytes;
 	
-	NSInteger i;
+	NSInteger i,i2;
     for (i=0; i < length; i += 3) {
         NSInteger value = 0;
-		NSInteger j;
-        for (j = i; j < (i + 3); j++) {
+		for (i2=0; i2<3; i2++) {
             value <<= 8;
-			
-            if (j < length) {
-                value |= (0xFF & input[j]);
+            if (i+i2 < length) {
+                value |= (0xFF & input[i+i2]);
             }
         }
 		
@@ -4690,6 +4708,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 @synthesize username;
 @synthesize password;
+@synthesize userAgent;
 @synthesize domain;
 @synthesize proxyUsername;
 @synthesize proxyPassword;
