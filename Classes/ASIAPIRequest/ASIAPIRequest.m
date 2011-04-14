@@ -10,14 +10,14 @@
 #import "ASIAPIRequest.h"
 
 
-NSString const *APIGetRequestFinishedNotification = @"APIGetRequestFinishedNotification";
-NSString const *APIGetRequestFailedNotification = @"APIGetRequestFailedNotification";
-NSString const *APIPostRequestFinishedNotification = @"APIPostRequestFinishedNotification";
-NSString const *APIPostRequestFailedNotification = @"APIPostRequestFailedNotification";
-NSString const *APIPutRequestFinishedNotification = @"APIPutRequestFinishedNotification";
-NSString const *APIPutRequestFailedNotification = @"APIPutRequestFailedNotification";
-NSString const *APIDeleteRequestFinishedNotification = @"APIDeleteRequestFinishedNotification";
-NSString const *APIDeleteRequestFailedNotification = @"APIDeleteRequestFailedNotification";
+NSString * const APIGetRequestFinishedNotification = @"APIGetRequestFinishedNotification";
+NSString * const APIGetRequestFailedNotification = @"APIGetRequestFailedNotification";
+NSString * const APIPostRequestFinishedNotification = @"APIPostRequestFinishedNotification";
+NSString * const APIPostRequestFailedNotification = @"APIPostRequestFailedNotification";
+NSString * const APIPutRequestFinishedNotification = @"APIPutRequestFinishedNotification";
+NSString * const APIPutRequestFailedNotification = @"APIPutRequestFailedNotification";
+NSString * const APIDeleteRequestFinishedNotification = @"APIDeleteRequestFinishedNotification";
+NSString * const APIDeleteRequestFailedNotification = @"APIDeleteRequestFailedNotification";
 
 
 // Private interface

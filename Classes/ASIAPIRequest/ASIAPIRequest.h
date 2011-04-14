@@ -19,14 +19,14 @@
 #define __PRIVATE_ASI_EXTERN extern
 #endif
 
-__PRIVATE_ASI_EXTERN NSString const *APIGetRequestFinishedNotification;
-__PRIVATE_ASI_EXTERN NSString const *APIGetRequestFailedNotification;
-__PRIVATE_ASI_EXTERN NSString const *APIPostRequestFinishedNotification;
-__PRIVATE_ASI_EXTERN NSString const *APIPostRequestFailedNotification;
-__PRIVATE_ASI_EXTERN NSString const *APIPutRequestFinishedNotification;
-__PRIVATE_ASI_EXTERN NSString const *APIPutRequestFailedNotification;
-__PRIVATE_ASI_EXTERN NSString const *APIDeleteRequestFinishedNotification;
-__PRIVATE_ASI_EXTERN NSString const *APIDeleteRequestFailedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIGetRequestFinishedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIGetRequestFailedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIPostRequestFinishedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIPostRequestFailedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIPutRequestFinishedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIPutRequestFailedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIDeleteRequestFinishedNotification;
+__PRIVATE_ASI_EXTERN NSString * const APIDeleteRequestFailedNotification;
 
 
 @interface ASIAPIRequest : ASIFormDataRequest {
