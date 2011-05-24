@@ -72,9 +72,9 @@ NSString * const APIDeleteRequestFailedNotification = @"APIDeleteRequestFailedNo
 	[super startSynchronous];
 }
 
-- (void)startAsynchronous {
+- (void)start {
 	[self __buildURLEncodedQueryStringParameters];
-	[super startAsynchronous];
+	[super start];
 }
 
 
