@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0EF9D37E12CAE1ED00330C21 /* ASIAPIRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 0EF9D37D12CAE1ED00330C21 /* ASIAPIRequest.m */; };
-		0EF9D37F12CAE1ED00330C21 /* ASIAPIRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 0EF9D37D12CAE1ED00330C21 /* ASIAPIRequest.m */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B502441B1025D36B002B13E1 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B502441A1025D36B002B13E1 /* ProxyTests.m */; };
 		B50C17DB121C254D0055FCAB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50C17DA121C254D0055FCAB /* Security.framework */; };
@@ -81,8 +79,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0EF9D37C12CAE1ED00330C21 /* ASIAPIRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIAPIRequest.h; sourceTree = "<group>"; };
-		0EF9D37D12CAE1ED00330C21 /* ASIAPIRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIAPIRequest.m; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -209,15 +205,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0EF9D37B12CAE1ED00330C21 /* ASIAPIRequest */ = {
-			isa = PBXGroup;
-			children = (
-				0EF9D37C12CAE1ED00330C21 /* ASIAPIRequest.h */,
-				0EF9D37D12CAE1ED00330C21 /* ASIAPIRequest.m */,
-			);
-			path = ASIAPIRequest;
-			sourceTree = "<group>";
-		};
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -347,7 +334,6 @@
 				B53E626F1255ED8700C1E79A /* ASIDataCompressor.m */,
 				B53E628E1255EE4B00C1E79A /* ASIDataDecompressor.h */,
 				B53E628D1255EE4B00C1E79A /* ASIDataDecompressor.m */,
-				0EF9D37B12CAE1ED00330C21 /* ASIAPIRequest */,
 				B54B23F412AA7D8300A7F940 /* ASIWebPageRequest */,
 				B5873F8F10FF2890001E145F /* CloudFiles */,
 				B51E61A2100BA84C004A300D /* S3 */,
@@ -436,7 +422,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B55B5EE40F7658C80064029C /* Build configuration list for PBXNativeTarget "Unit Tests (GHUnit)" */;
 			buildPhases = (
-				B52D490910DA4009008E8365 /* ShellScript */,
+				B52D490910DA4009008E8365 /* Run Script */,
 				B55B5EDB0F7658C70064029C /* Resources */,
 				B55B5EDC0F7658C70064029C /* Sources */,
 				B55B5EDD0F7658C70064029C /* Frameworks */,
@@ -508,13 +494,14 @@
 			shellPath = /bin/sh;
 			shellScript = "./Build\\ Scripts/set_version_number.rb";
 		};
-		B52D490910DA4009008E8365 /* ShellScript */ = {
+		B52D490910DA4009008E8365 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -538,7 +525,6 @@
 				B53E62721255ED8700C1E79A /* ASIDataCompressor.m in Sources */,
 				B53E62901255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */,
 				B54B23FB12AA7D9100A7F940 /* ASIWebPageRequest.m in Sources */,
-				0EF9D37E12CAE1ED00330C21 /* ASIAPIRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -579,7 +565,6 @@
 				B53E628F1255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */,
 				B53E62EF1255F73300C1E79A /* ASIDataCompressorTests.m in Sources */,
 				B54B23FA12AA7D9100A7F940 /* ASIWebPageRequest.m in Sources */,
-				0EF9D37F12CAE1ED00330C21 /* ASIAPIRequest.m in Sources */,
 				B57A610812D5FBEB00887E97 /* ASIWebPageRequestTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

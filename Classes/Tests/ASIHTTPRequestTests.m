@@ -1033,6 +1033,30 @@
 	
 }
 
+- (void)testPreserveResponseWhenDownloadComplete
+{
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
+	ASIHTTPRequest *request;
+	BOOL success;
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request startSynchronous];
+
+	success = ([[request responseString] length]);
+	GHAssertTrue(success,@"Request removed the response body when we encountered an error, even though the download was complete");
+
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"test.txt"];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:downloadPath]) {
+		[[NSFileManager defaultManager] removeItemAtPath:downloadPath error:NULL];
+	}
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setDownloadDestinationPath:downloadPath];
+	[request startSynchronous];
+
+	success = ([[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:NULL] fileSize]);
+	GHAssertTrue(success,@"Request removed or failed to copy the response to downloadDestinationPath");
+}
 
 - (void)testBasicAuthentication
 {
@@ -1050,7 +1074,7 @@
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
-	
+
 	// Test wrong credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistence:NO];
@@ -1081,6 +1105,16 @@
 
 	// Ensure credentials stored in the session are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:NO];
+	[request startSynchronous];
+	err = [request error];
+	GHAssertNil(err,@"Failed to reuse credentials");
+	
+	// Ensure new credentials are used in place of those in the session
+	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication-new-credentials"]] autorelease];
+	[request setUsername:@"secret_username_2"];
+	[request setPassword:@"secret_password_2"];
 	[request setUseSessionPersistence:YES];
 	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
@@ -1389,7 +1423,7 @@
 	GHAssertNotNil([request error],@"Failed to generate an error for a self-signed certificate (Will fail on the second run in the same session!)");		
 	
 	// Just for testing the request generated a custom error description - don't do this! You should look at the domain / code of the underlyingError in your own programs.
-	BOOL success = ([[[request error] localizedDescription] isEqualToString:@"A connection failure occurred: SSL problem (possibly a bad/expired/self-signed certificate)"]);
+	BOOL success = ([[[request error] localizedDescription] rangeOfString:@"SSL problem"].location != NSNotFound);
 	GHAssertTrue(success,@"Generated the wrong error for a self signed cert");
 	
 	// Turn off certificate validation, and try again
@@ -1424,7 +1458,7 @@
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_new_domain"]];
 	[request startSynchronous];
-	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://www.apple.com/"];
+	BOOL success = [[[[request url] absoluteString] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]] isEqualToString:@"http://www.apple.com"];
 	GHAssertTrue(success,@"Failed to redirect to a different domain");		
 }
 
@@ -1561,28 +1595,28 @@
 - (void)testAsynchronous
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"]];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"RequestNumber"]];
+	[request setTag:1];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
 	[request startAsynchronous];
 	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/second"]];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:2] forKey:@"RequestNumber"]];
+	[request setTag:2];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
 	[request startAsynchronous];
 	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/third"]];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:3] forKey:@"RequestNumber"]];
+	[request setTag:3];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
 	[request startAsynchronous];	
 	
 	request = [ASIHTTPRequest requestWithURL:nil];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:4] forKey:@"RequestNumber"]];
+	[request setTag:4];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
@@ -1592,18 +1626,16 @@
 
 - (void)asyncFail:(ASIHTTPRequest *)request
 {
-	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
-	BOOL success = (requestNumber == 4);
+	BOOL success = ([request tag] == 4);
 	GHAssertTrue(success,@"Wrong request failed");
 }
 
 - (void)asyncSuccess:(ASIHTTPRequest *)request
 {
-	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
-	BOOL success = (requestNumber != 4);
+	BOOL success = ([request tag] != 4);
 	GHAssertTrue(success,@"Request succeeded when it should have failed");
 	
-	switch (requestNumber) {
+	switch ([request tag]) {
 		case 1:
 			success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
 			break;
@@ -1692,29 +1724,62 @@
 	
 }
 
-- (void)testPersistentConnectionTimeout
+- (void)testPersistentConnections
 {
+	// allseeing-i.com is configured to keep persistent connections alive for 2 seconds
+
+	// Ensure we parse a keep-alive header
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
-	
+
 	BOOL success = ([request persistentConnectionTimeoutSeconds] == 60);
 	GHAssertTrue(success,@"Request failed to default to 60 seconds for connection timeout");
-	
+
 	[request startSynchronous];
-	
+
 	NSNumber *connectionId = [request connectionID];
-	
+
 	success = ([request persistentConnectionTimeoutSeconds] == 2);
 	GHAssertTrue(success,@"Request failed to use time out set by server");
-	
+
 	// Wait 3 seconds - connection should have timed out
 	sleep(3);
-	
+
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request startSynchronous];
-	
+
 	success = ([[request connectionID] intValue] != [connectionId intValue]);
 	GHAssertTrue(success,@"Reused a connection that should have timed out");
-	
+
+	// Ensure persistent connections are turned off by default with POST/PUT and/or a request body
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request appendPostData:[@"Foo" dataUsingEncoding:NSUTF8StringEncoding]];
+	[request startSynchronous];
+
+	success = ![request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Used a persistent connection with a body");
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setRequestMethod:@"PUT"];
+	[request startSynchronous];
+
+	success = ![request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Used a persistent connection with PUT");
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setRequestMethod:@"POST"];
+	[request startSynchronous];
+
+	success = ![request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Used a persistent connection with POST");
+
+	// Ensure we can force a persistent connection
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setRequestMethod:@"POST"];
+	[request setShouldAttemptPersistentConnection:YES];
+	[request startSynchronous];
+
+	success = [request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Failed to use a persistent connection");
 }
 
 - (void)testRemoveUploadProgress

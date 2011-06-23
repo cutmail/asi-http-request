@@ -2,7 +2,7 @@
 //  ASIHTTPRequest.h
 //
 //  Created by Ben Copsey on 04/10/2007.
-//  Copyright 2007-2010 All-Seeing Interactive. All rights reserved.
+//  Copyright 2007-2011 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
 //  http://allseeing-i.com/ASIHTTPRequest
@@ -92,7 +92,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Temporarily stores the url we are about to redirect to. Will be nil again when we do redirect
 	NSURL *redirectURL;
 
-	// The delegate, you need to manage setting and talking to your delegate in your subclasses
+	// The delegate - will be notified of various changes in state via the ASIHTTPRequestDelegate protocol
 	id <ASIHTTPRequestDelegate> delegate;
 	
 	// Another delegate that is also notified of request status changes and progress updates
@@ -100,7 +100,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// NOTE: WILL BE RETAINED BY THE REQUEST
 	id <ASIHTTPRequestDelegate, ASIProgressDelegate> queue;
 	
-	// HTTP method to use (GET / POST / PUT / DELETE / HEAD). Defaults to GET
+	// HTTP method to use (eg: GET / POST / PUT / DELETE / HEAD etc). Defaults to GET
 	NSString *requestMethod;
 	
 	// Request body - only used when the whole body is stored in memory (shouldStreamPostDataFromDisk is false)
@@ -232,6 +232,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	int authenticationRetryCount;
 	
 	// Authentication scheme (Basic, Digest, NTLM)
+	// If you are using Basic authentication and want to force ASIHTTPRequest to send an authorization header without waiting for a 401, you must set this to (NSString *)kCFHTTPAuthenticationSchemeBasic
 	NSString *authenticationScheme;
 	
 	// Realm for authentication when credentials are required
@@ -297,7 +298,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	SEL didReceiveResponseHeadersSelector;
 
 	// Called on the delegate (if implemented) when the request receives a Location header and shouldRedirect is YES
-	// The delegate can then change the url if needed, and can restart the request by calling [request resume], or simply cancel it
+	// The delegate can then change the url if needed, and can restart the request by calling [request redirectToURL:], or simply cancel it
 	SEL willRedirectSelector;
 
 	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
@@ -349,8 +350,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Tells ASIHTTPRequest not to delete partial downloads, and allows it to use an existing file to resume a download. Defaults to NO.
 	BOOL allowResumeForFileDownloads;
 	
-	// Custom user information associated with the request
+	// Custom user information associated with the request (not sent to the server)
 	NSDictionary *userInfo;
+	NSInteger tag;
 	
 	// Use HTTP 1.0 rather than 1.1 (defaults to false)
 	BOOL useHTTPVersionOne;
@@ -390,6 +392,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Set to NO to only present credentials when explicitly asked for them
 	// This only affects credentials stored in the session cache when useSessionPersistence is YES. Credentials from the keychain are never presented unless the server asks for them
 	// Default is YES
+	// For requests using Basic authentication, set authenticationScheme to (NSString *)kCFHTTPAuthenticationSchemeBasic, and credentials can be sent on the very first request when shouldPresentCredentialsBeforeChallenge is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
 	// YES when the request hasn't finished yet. Will still be YES even if the request isn't doing anything (eg it's waiting for delegate authentication). READ-ONLY
@@ -405,7 +408,10 @@ typedef void (^ASIDataBlock)(NSData *data);
 
 	// The number of times this request has retried (when numberOfTimesToRetryOnTimeout > 0)
 	int retryCount;
-	
+
+	// Temporarily set to YES when a closed connection forces a retry (internally, this stops ASIHTTPRequest cleaning up a temporary post body)
+	BOOL willRetryRequest;
+
 	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substantial speed-boost
 	// Persistent connections will not be used if the server explicitly closes the connection
 	// Default is YES
@@ -445,7 +451,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 	
 	// This timer checks up on the request every 0.25 seconds, and updates progress
 	NSTimer *statusTimer;
-
 	
 	// The download cache that will be used for this request (use [ASIHTTPRequest setDefaultCache:cache] to configure a default cache
 	id <ASICacheDelegate> downloadCache;
@@ -466,7 +471,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 	BOOL shouldContinueWhenAppEntersBackground;
 	UIBackgroundTaskIdentifier backgroundTask;
 	#endif
-
 	
 	// When downloading a gzipped response, the request will use this helper object to inflate the response
 	ASIDataDecompressor *dataDecompressor;
@@ -941,7 +945,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain,readonly) NSString *responseStatusMessage;
 @property (retain) NSMutableData *rawResponseData;
 @property (assign) NSTimeInterval timeOutSeconds;
-@property (retain) NSString *requestMethod;
+@property (retain, nonatomic) NSString *requestMethod;
 @property (retain) NSMutableData *postBody;
 @property (assign) unsigned long long contentLength;
 @property (assign) unsigned long long postLength;
@@ -956,6 +960,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (assign) BOOL allowCompressedResponse;
 @property (assign) BOOL allowResumeForFileDownloads;
 @property (retain) NSDictionary *userInfo;
+@property (assign) NSInteger tag;
 @property (retain) NSString *postBodyFilePath;
 @property (assign) BOOL shouldStreamPostDataFromDisk;
 @property (assign) BOOL didCreateTemporaryPostDataFile;

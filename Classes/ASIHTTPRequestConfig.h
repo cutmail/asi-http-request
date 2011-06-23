@@ -31,6 +31,11 @@
 	#define DEBUG_PERSISTENT_CONNECTIONS 0
 #endif
 
+// When set to 1, ASIHTTPRequests will print information about HTTP authentication (Basic, Digest or NTLM) to the console
+#ifndef DEBUG_HTTP_AUTHENTICATION
+#define DEBUG_HTTP_AUTHENTICATION 0
+#endif
+
 // When set to 1, ASIHTTPRequests will print verbose information such as request URL, request parameter, or response body to the console
 #ifndef DEBUG_VERBOSE
 	#define DEBUG_VERBOSE 0
