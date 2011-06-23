@@ -30,7 +30,7 @@
 #pragma mark utilities
 - (NSString*)encodeURL:(NSString *)string
 {
-	NSString *newString = NSMakeCollectable([(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)string, NULL, CFSTR(":/?#[]@!$ &'()*+,;=€"<>%{}|€€^~`"), CFStringConvertNSStringEncodingToEncoding([self stringEncoding])) autorelease]);
+	NSString *newString = NSMakeCollectable([(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)string, NULL, CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"), CFStringConvertNSStringEncodingToEncoding([self stringEncoding])) autorelease]);
 	if (newString) {
 		return newString;
 	}
@@ -223,7 +223,7 @@
 - (void)buildMultipartFormDataPostBody
 {
 #if DEBUG_FORM_DATA_REQUEST
-	[self addToDebugBody:@"€r€n==== Building a multipart/form-data body ====€r€n"];
+	[self addToDebugBody:@"\r\n==== Building a multipart/form-data body ====\r\n"];
 #endif
 	
 	NSString *charset = (NSString *)CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding([self stringEncoding]));
@@ -236,13 +236,13 @@
 	
 	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; charset=%@; boundary=%@", charset, stringBoundary]];
 	
-	[self appendPostString:[NSString stringWithFormat:@"--%@€r€n",stringBoundary]];
+	[self appendPostString:[NSString stringWithFormat:@"--%@\r\n",stringBoundary]];
 	
 	// Adds post data
-	NSString *endItemBoundary = [NSString stringWithFormat:@"€r€n--%@€r€n",stringBoundary];
+	NSString *endItemBoundary = [NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary];
 	NSUInteger i=0;
 	for (NSDictionary *val in [self postData]) {
-		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=€"%@€"€r€n€r€n",[val objectForKey:@"key"]]];
+		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",[val objectForKey:@"key"]]];
 		[self appendPostString:[val objectForKey:@"value"]];
 		i++;
 		if (i != [[self postData] count] || [[self fileData] count] > 0) { //Only add the boundary if this is not the last item in the post body
@@ -254,8 +254,8 @@
 	i=0;
 	for (NSDictionary *val in [self fileData]) {
 
-		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=€"%@€"; filename=€"%@€"€r€n", [val objectForKey:@"key"], [val objectForKey:@"fileName"]]];
-		[self appendPostString:[NSString stringWithFormat:@"Content-Type: %@€r€n€r€n", [val objectForKey:@"contentType"]]];
+		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", [val objectForKey:@"key"], [val objectForKey:@"fileName"]]];
+		[self appendPostString:[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", [val objectForKey:@"contentType"]]];
 		
 		id data = [val objectForKey:@"data"];
 		if ([data isKindOfClass:[NSString class]]) {
@@ -270,10 +270,10 @@
 		}
 	}
 	
-	[self appendPostString:[NSString stringWithFormat:@"€r€n--%@--€r€n",stringBoundary]];
+	[self appendPostString:[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary]];
 	
 #if DEBUG_FORM_DATA_REQUEST
-	[self addToDebugBody:@"==== End of multipart/form-data body ====€r€n"];
+	[self addToDebugBody:@"==== End of multipart/form-data body ====\r\n"];
 #endif
 }
 
@@ -288,7 +288,7 @@
 	}
 	
 #if DEBUG_FORM_DATA_REQUEST
-	[self addToDebugBody:@"€r€n==== Building an application/x-www-form-urlencoded body ====€r€n"]; 
+	[self addToDebugBody:@"\r\n==== Building an application/x-www-form-urlencoded body ====\r\n"]; 
 #endif
 	
 	
@@ -305,7 +305,7 @@
 		i++;
 	}
 #if DEBUG_FORM_DATA_REQUEST
-	[self addToDebugBody:@"€r€n==== End of application/x-www-form-urlencoded body ====€r€n"]; 
+	[self addToDebugBody:@"\r\n==== End of application/x-www-form-urlencoded body ====\r\n"]; 
 #endif
 }
 
