@@ -130,12 +130,6 @@ NSString * const APIDeleteRequestFailedNotification = @"APIDeleteRequestFailedNo
 @synthesize deleteRequestFailedNotificationName;
 
 
-#pragma mark Request/response utilities
-
-
-@synthesize tag;
-
-
 #pragma mark ASIHTTPRequest
 
 

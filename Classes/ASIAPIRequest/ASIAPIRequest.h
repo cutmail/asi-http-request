@@ -41,8 +41,6 @@ __PRIVATE_ASI_EXTERN NSString * const APIDeleteRequestFailedNotification;
 	NSString *deleteRequestFailedNotificationName;
     
 	NSMutableArray *queryStringParameters;
-    
-	NSInteger tag;
 }
 
 #pragma mark Methods to override
@@ -80,10 +78,5 @@ __PRIVATE_ASI_EXTERN NSString * const APIDeleteRequestFailedNotification;
 @property (nonatomic, copy) NSString *putRequestFailedNotificationName;
 @property (nonatomic, copy) NSString *deleteRequestFinishedNotificationName;
 @property (nonatomic, copy) NSString *deleteRequestFailedNotificationName;
-
-#pragma mark Request/response utilities
-
-// Tag value. You can use this property to specify requests
-@property (nonatomic, assign) NSInteger tag;
 
 @end
