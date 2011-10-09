@@ -789,8 +789,8 @@ static NSOperationQueue *sharedQueue = nil;
 	NSLog(@"[STATUS] Starting synchronous request %@",self);
 #endif
 #if DEBUG_VERBOSE
-	NSLog(@"URL      = %@", self.url);
-	NSLog(@"Username = %@", self.username);
+	NSLog(@"       * URL      = %@", self.url);
+	NSLog(@"       * Username = %@", self.username);
 #endif
 	[self setSynchronous:YES];
 	[self setRunLoopMode:ASIHTTPRequestRunLoopMode];
@@ -818,8 +818,8 @@ static NSOperationQueue *sharedQueue = nil;
 	NSLog(@"[STATUS] Starting asynchronous request %@",self);
 #endif
 #if DEBUG_VERBOSE
-	NSLog(@"URL      = %@", self.url);
-	NSLog(@"Username = %@", self.username);
+	NSLog(@"       * URL      = %@", self.url);
+	NSLog(@"       * Username = %@", self.username);
 #endif
 	[sharedQueue addOperation:self];
 }
@@ -1999,8 +1999,8 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 #if DEBUG_VERBOSE
-    NSLog(@"Response Status = %@", self.responseStatusMessage);
-	NSLog(@"Response Body   = %@", [self responseString]);
+    NSLog(@"       * Response Status = %@", self.responseStatusMessage);
+	NSLog(@"       * Response Body   = %@", [self responseString]);
 #endif
 	if ([self isPACFileRequest]) {
 		[self reportFinished];
