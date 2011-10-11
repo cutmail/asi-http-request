@@ -1999,8 +1999,9 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 #if DEBUG_VERBOSE
-    NSLog(@"       * Response Status = %@", self.responseStatusMessage);
-	NSLog(@"       * Response Body   = %@", [self responseString]);
+	NSLog(@"       * Status = %@", self.responseStatusMessage);
+	NSLog(@"       * Header = %@", [self responseHeaders]);
+	NSLog(@"       * Body   = %@", [self responseString]);
 #endif
 	if ([self isPACFileRequest]) {
 		[self reportFinished];
